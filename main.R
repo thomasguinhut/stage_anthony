@@ -1,4 +1,5 @@
-# PREMIÈRE CHOSE À FAIRE : ouvrir le projet RStudio.
+# PREMIÈRE CHOSE À FAIRE : ouvrir le projet RStudio, si pas encore fait, pour se
+# placer dans le bon dossier.
 
 
 # --- 1. INSTALLATION ET CHARGEMENT DES PACKAGES ---
@@ -33,7 +34,6 @@ for (pkg in packages) {
 bdd <- read_csv("extrait_acm.csv")
 
 # Affichage de la structure des données importées
-cat("\n=== STRUCTURE DES DONNÉES IMPORTÉES ===\n")
 str(bdd)
 
 
@@ -66,7 +66,6 @@ bdd$age <- cut(bdd$age,
 bdd$age <- as.factor(bdd$age)
 
 # Vérification des transformations
-cat("\n=== DONNÉES APRÈS PRÉPARATION ===\n")
 str(bdd)
 summary(bdd)
 
@@ -74,14 +73,11 @@ summary(bdd)
 # --- 4. RÉALISATION DE L'ACM ---
 # ==============================================================================
 
-# Exécution de l'Analyse des Correspondances Multiples
 # Les colonnes 1 à 5 sont définies comme variables supplémentaires (quali.sup)
 # Ces variables ne participent pas à la construction des axes mais sont projetées
+# Il s'agit de : age, education, socioprofessional_group, occupation_group et
+# political_vote.
 res.mca <- MCA(bdd, quali.sup = 1:5)
-
-cat("\n=== ACM RÉALISÉE ===\n")
-cat("Variables actives : chaînes TV et stations radio\n")
-cat("Variables supplémentaires : age, education, socioprofessional_group, occupation_group, political_vote\n")
 
 
 # --- 5. PREMIÈRE ANALYSE DES RÉSULTATS ---
@@ -119,8 +115,8 @@ labels_tvradio <- c(
   "chainesteletf20" = "6ter",
   "chainesteletf21" = "RMC Story",
   "chainesteletf22" = "LCI",
-  "chainesteletf23" = "France Info (TV)",
-  "chainesteletf24" = "Autre chaîne TV",
+  "chainesteletf23" = "France Info",
+  "chainesteletf24" = "Autre chaîne",
   
   # Stations de radio
   "stationsradioeurope" = "Europe 1",
@@ -131,7 +127,7 @@ labels_tvradio <- c(
   "stationsradiofranceinfo" = "France Info",
   "stationsradioradioclassique" = "Radio Classique",
   "stationsradiofranceculture" = "France Culture",
-  "stationsradionfmbusiness" = "BFM Business (radio)",
+  "stationsradionfmbusiness" = "BFM Business",
   "stationsradiosudradio" = "Sud Radio",
   "stationsradiorfi" = "RFI",
   "stationsradioradiolocale" = "Radio locale"
@@ -143,6 +139,9 @@ labels_tvradio <- c(
 # ==============================================================================
 
 # Liste des modalités pour chaque variable qualitative supplémentaire
+# ATTENTION : il faut absolument que les modalités de la base de données
+# correspondent à ce qui est affiché ici. S'il y a une modalité en plus ou des
+# NA, il faut re-nettoyer la base de données.
 variables_quali_supp <- list(
   "education" = c("High school/Short post-secondary", "Less than high school", "University degree"),
   "socioprofessional_group" = c("Firm owners", "Higher occupations", "Inactive", "Intermediate occupations", "Lower occupations"),
@@ -181,11 +180,13 @@ plot_mca_custom <- function(res.mca, variables_quali_supp, labels_tvradio, axes 
   coord <- res.mca$var$coord[, axes]           # Variables actives
   coord_sup <- res.mca$quali.sup$coord[, axes] # Variables supplémentaires
   
-  # Filtrage des modalités "YES" (variables binaires)
+  # Filtrage des modalités "YES" (variables binaires), et on elève ce "YES" dans
+  # le nom des modalités
   coord_yes <- coord[grep("_YES$", rownames(coord)), , drop = FALSE]
   rownames(coord_yes) <- gsub("_YES$", "", rownames(coord_yes))
   
-  # Création du dataframe pour les variables actives
+  # Création du dataframe pour les variables actives en ajoutant une
+  # catégorisation TV/Radio
   df_yes <- data.frame(
     Dim1 = coord_yes[, 1],
     Dim2 = coord_yes[, 2],
@@ -208,7 +209,7 @@ plot_mca_custom <- function(res.mca, variables_quali_supp, labels_tvradio, axes 
   # Application du renommage des labels
   df_all$Label <- dplyr::recode(df_all$Label, !!!labels_tvradio)
   
-  # --- Configuration des formes pour les variables supplémentaires ---
+  # Configuration des formes pour les variables supplémentaires
   shape_map <- c(
     "education" = 15,                    # Carré
     "socioprofessional_group" = 17,      # Triangle
@@ -246,7 +247,7 @@ plot_mca_custom <- function(res.mca, variables_quali_supp, labels_tvradio, axes 
   df_all$Legend_Combined[df_all$Type == "Radio"] <- "Radio"
   df_all$Legend_Combined[df_all$Type == "supp"] <- paste0("Supp: ", df_all$Variable_Base[df_all$Type == "supp"])
   
-  # --- Configuration du quadrillage ---
+  # Configuration du quadrillage
   x_min <- floor(min(df_all$Dim1) * 2) / 2
   x_max <- ceiling(max(df_all$Dim1) * 2) / 2
   y_min <- floor(min(df_all$Dim2) * 2) / 2
@@ -269,7 +270,7 @@ plot_mca_custom <- function(res.mca, variables_quali_supp, labels_tvradio, axes 
   x_lab <- paste0("\nDim ", axes[1], " (", perc_x, "%)")
   y_lab <- paste0("Dim ", axes[2], " (", perc_y, "%)\n")
   
-  # --- Création du graphique ggplot ---
+  # Création du graphique ggplot
   p <- ggplot(df_all, aes(x = Dim1, y = Dim2, label = Label)) +
     
     # Quadrillage
@@ -335,7 +336,6 @@ plot_mca_custom <- function(res.mca, variables_quali_supp, labels_tvradio, axes 
 # ================================================================================
 
 # Création du graphique ACM
-cat("\n=== CRÉATION DU GRAPHIQUE ACM ===\n")
 p <- plot_mca_custom(
   res.mca = res.mca,
   variables_quali_supp = variables_quali_supp,
