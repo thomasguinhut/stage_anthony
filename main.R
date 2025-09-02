@@ -17,13 +17,16 @@ packages <- c(
   "ggplot2"      # Visualisations
 )
 
-# Installation automatique des packages manquants et chargement
-for (pkg in packages) {
+# Fonction pour installer et charger les packages
+install_and_load <- function(pkg) {
   if (!require(pkg, character.only = TRUE)) {
-    install.packages(pkg)
+    install.packages(pkg, dependencies = TRUE)
   }
   library(pkg, character.only = TRUE)
 }
+
+# Appliquer la fonction à chaque package
+invisible(sapply(packages, install_and_load))
 
 
 # --- 2. IMPORTATION DES DONNÉES ---
