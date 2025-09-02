@@ -10,7 +10,7 @@ packages <- c(
   "ggrepel",     # Labels sans chevauchement dans ggplot2
   "ggtext",      # Formatage avancé du texte dans ggplot2
   "readr",       # Lecture de fichiers CSV
-  "ggplot2"      # Visualisations
+  "ggplot2"      # Visualisations graphiques
 )
 
 # Fonction corrigée pour installer et charger les packages
@@ -19,6 +19,8 @@ install_and_load <- function(pkg) {
     cat("Installation du package:", pkg, "\n")
     install.packages(pkg, dependencies = TRUE)
     library(pkg, character.only = TRUE)
+  } else {
+    cat("Package", pkg, "déjà installé et chargé\n")
   }
 }
 
@@ -80,6 +82,8 @@ summary(bdd)
 # projetées. Il s'agit des variables : age, education, socioprofessional_group,
 # occupation_group et political_vote.
 res.mca <- MCA(bdd, quali.sup = 1:5)
+# Les warnings sont normaux, ils alertent sur les les textes qui se chevauchant
+# sur le graphque qui vient d'apparaître à droite.
 
 
 # --- 5. PREMIÈRE ANALYSE DES RÉSULTATS ---
