@@ -1,7 +1,3 @@
-# PREMIÈRE CHOSE À FAIRE : ouvrir le projet RStudio, si pas encore fait, pour se
-# placer dans le bon dossier.
-
-
 # --- 1. INSTALLATION ET CHARGEMENT DES PACKAGES ---
 # ==============================================================================
 
@@ -23,8 +19,6 @@ install_and_load <- function(pkg) {
     cat("Installation du package:", pkg, "\n")
     install.packages(pkg, dependencies = TRUE)
     library(pkg, character.only = TRUE)
-  } else {
-    cat("Package", pkg, "déjà installé et chargé\n")
   }
 }
 
@@ -92,6 +86,7 @@ res.mca <- MCA(bdd, quali.sup = 1:5)
 # ==============================================================================
 
 explor(res.mca) # Ouverture d'une interface interractive
+# La priorité est de regarder les axes qui ont le plus de pourcentage. 
 
 
 # --- 6. DICTIONNAIRE DE RENOMMAGE DES MODALITÉS ---
