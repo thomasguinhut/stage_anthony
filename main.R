@@ -10,7 +10,6 @@ packages <- c(
   "dplyr",       # Manipulation de données
   "FactoMineR",  # Analyse factorielle (ACM)
   "factoextra",  # Visualisations pour analyses factorielles
-  "ade4",        # Analyses multivariées
   "explor",      # Interface interactive pour analyses factorielles
   "ggrepel",     # Labels sans chevauchement dans ggplot2
   "ggtext",      # Formatage avancé du texte dans ggplot2
@@ -43,9 +42,12 @@ str(bdd)
 # Traitement des valeurs manquantes et recodage des variables
 bdd <- bdd %>% 
   # Remplacer les NA dans la variable politique par "Not said"
-  mutate(pol_lr_scale_agg = ifelse(is.na(pol_lr_scale_agg), "Not said", pol_lr_scale_agg)) %>% 
+  mutate(pol_lr_scale_agg = ifelse(is.na(pol_lr_scale_agg),
+                                   "Not said",
+                                   pol_lr_scale_agg)) %>% 
   # Recoder "Not applicable" en "No occupation"
-  mutate(soc_occupation_group = recode(soc_occupation_group, "Not applicable" = "No occupation")) %>% 
+  mutate(soc_occupation_group = recode(soc_occupation_group,
+                                       "Not applicable" = "No occupation")) %>% 
   # Convertir toutes les variables en facteurs (sauf l'âge qui est numérique)
   mutate(across(-soc_age, as.factor)) %>% 
   # Renommer les variables pour plus de clarté
@@ -57,7 +59,7 @@ bdd <- bdd %>%
     political_vote = pol_lr_scale_agg
   )
 
-# Découpage de l'âge en catégories
+# Découpage de l'âge en catégories :
 # Jeunes : < 35 ans, Adultes : 35-60 ans, Retraités : > 60 ans
 bdd$age <- cut(bdd$age,
                breaks = c(-Inf, 35, 60, Inf),
@@ -74,9 +76,9 @@ summary(bdd)
 # ==============================================================================
 
 # Les colonnes 1 à 5 sont définies comme variables supplémentaires (quali.sup)
-# Ces variables ne participent pas à la construction des axes mais sont projetées
-# Il s'agit de : age, education, socioprofessional_group, occupation_group et
-# political_vote.
+# Ces variables ne participent pas à la construction des axes mais sont
+# projetées. Il s'agit des variables : age, education, socioprofessional_group,
+# occupation_group et political_vote.
 res.mca <- MCA(bdd, quali.sup = 1:5)
 
 
@@ -141,11 +143,14 @@ labels_tvradio <- c(
 # Liste des modalités pour chaque variable qualitative supplémentaire
 # ATTENTION : il faut absolument que les modalités de la base de données
 # correspondent à ce qui est affiché ici. S'il y a une modalité en plus ou des
-# NA, il faut re-nettoyer la base de données.
+# NA, il faut re-nettoyer la base de données dans les sections précédentes.
 variables_quali_supp <- list(
-  "education" = c("High school/Short post-secondary", "Less than high school", "University degree"),
-  "socioprofessional_group" = c("Firm owners", "Higher occupations", "Inactive", "Intermediate occupations", "Lower occupations"),
-  "occupation_group" = c("Blue collar workers", "Clerical workers", "Executives", "Farm owner", "Intermediate", "No occupation"),
+  "education" = c("High school/Short post-secondary", "Less than high school",
+                  "University degree"),
+  "socioprofessional_group" = c("Firm owners", "Higher occupations", "Inactive",
+                                "Intermediate occupations", "Lower occupations"),
+  "occupation_group" = c("Blue collar workers", "Clerical workers", "Executives",
+                         "Farm owner", "Intermediate", "No occupation"),
   "political_vote" = c("Center", "Left", "Not said", "Right"),
   "age" = c("young", "adult", "retired")
 )
@@ -166,15 +171,16 @@ variables_quali_supp <- list(
 #' @return Objet ggplot
 #' 
 #' @description
-#' Cette fonction crée une représentation graphique personnalisée de l'ACM avec :
-#' - Points noirs pour les chaînes TV
-#' - Points bleus pour les stations radio  
-#' - Points rouges avec formes spécifiques pour les variables supplémentaires
-#' - Quadrillage pour faciliter la lecture
-#' - Labels repositionnés automatiquement pour éviter les chevauchements
+#' Cette fonction crée une représentation graphique personnalisée de l'ACM avec
+#' - points noirs pour les chaînes TV
+#' - points bleus pour les stations radio  
+#' - points rouges avec formes spécifiques pour les variables supplémentaires
+#' - quadrillage pour faciliter la lecture
+#' - labels repositionnés automatiquement pour éviter les chevauchements
 
-plot_mca_custom <- function(res.mca, variables_quali_supp, labels_tvradio, axes = c(1, 2),
-                            longueur_accroches = 0.5, taille_boxes = 3.5) {
+plot_mca_custom <- function(res.mca, variables_quali_supp, labels_tvradio,
+                            axes = c(1, 2), longueur_accroches = 0.5,
+                            taille_boxes = 3.5) {
   
   # Extraction des coordonnées pour les axes choisis
   coord <- res.mca$var$coord[, axes]           # Variables actives
@@ -191,8 +197,11 @@ plot_mca_custom <- function(res.mca, variables_quali_supp, labels_tvradio, axes 
     Dim1 = coord_yes[, 1],
     Dim2 = coord_yes[, 2],
     Label = rownames(coord_yes),
-    Type = ifelse(grepl("chainesteletf", rownames(coord_yes)), "TV",
-                  ifelse(grepl("stationsradio", rownames(coord_yes)), "Radio", "Autre"))
+    Type = ifelse(grepl("chainesteletf", rownames(coord_yes)),
+                  "TV",
+                  ifelse(grepl("stationsradio", rownames(coord_yes)),
+                         "Radio",
+                         "Autre"))
   )
   
   # Création du dataframe pour les variables supplémentaires
@@ -227,7 +236,7 @@ plot_mca_custom <- function(res.mca, variables_quali_supp, labels_tvradio, axes 
   }
   
   # Attribution des formes
-  df_all$Shape <- 16  # Forme par défaut (cercle)
+  df_all$Shape <- 16  # Forme par défaut (cercle) pour TV et Radio
   df_all$Variable_Base <- NA
   
   for (i in 1:nrow(df_all)) {
@@ -245,7 +254,9 @@ plot_mca_custom <- function(res.mca, variables_quali_supp, labels_tvradio, axes 
   df_all$Legend_Combined <- df_all$Type
   df_all$Legend_Combined[df_all$Type == "TV"] <- "TV"
   df_all$Legend_Combined[df_all$Type == "Radio"] <- "Radio"
-  df_all$Legend_Combined[df_all$Type == "supp"] <- paste0("Supp: ", df_all$Variable_Base[df_all$Type == "supp"])
+  df_all$Legend_Combined[df_all$Type == "supp"] <- paste0(
+    "Supp: ", df_all$Variable_Base[df_all$Type == "supp"]
+  )
   
   # Configuration du quadrillage
   x_min <- floor(min(df_all$Dim1) * 2) / 2
@@ -253,9 +264,11 @@ plot_mca_custom <- function(res.mca, variables_quali_supp, labels_tvradio, axes 
   y_min <- floor(min(df_all$Dim2) * 2) / 2
   y_max <- ceiling(max(df_all$Dim2) * 2) / 2
   
-  breaks_major_x <- seq(x_min, x_max, by = 1)      # Lignes principales
+  # Lignes principales
+  breaks_major_x <- seq(x_min, x_max, by = 1)
   breaks_major_y <- seq(y_min, y_max, by = 1)
-  breaks_minor_x <- setdiff(seq(x_min, x_max, by = 0.5), breaks_major_x)  # Lignes secondaires
+  # Lignes secondaires
+  breaks_minor_x <- setdiff(seq(x_min, x_max, by = 0.5), breaks_major_x)
   breaks_minor_y <- setdiff(seq(y_min, y_max, by = 0.5), breaks_major_y)
   
   # Ordre des éléments de légende
@@ -274,17 +287,24 @@ plot_mca_custom <- function(res.mca, variables_quali_supp, labels_tvradio, axes 
   p <- ggplot(df_all, aes(x = Dim1, y = Dim2, label = Label)) +
     
     # Quadrillage
-    geom_vline(xintercept = breaks_major_x, linetype = "dashed", color = "grey70", linewidth = 0.5) +
-    geom_hline(yintercept = breaks_major_y, linetype = "dashed", color = "grey70", linewidth = 0.5) +
-    geom_vline(xintercept = breaks_minor_x, linetype = "dotted", color = "grey70", linewidth = 0.45) +
-    geom_hline(yintercept = breaks_minor_y, linetype = "dotted", color = "grey70", linewidth = 0.45) +
+    geom_vline(xintercept = breaks_major_x, linetype = "dashed",
+               color = "grey70", linewidth = 0.5) +
+    geom_hline(yintercept = breaks_major_y, linetype = "dashed",
+               color = "grey70", linewidth = 0.5) +
+    geom_vline(xintercept = breaks_minor_x, linetype = "dotted",
+               color = "grey70", linewidth = 0.45) +
+    geom_hline(yintercept = breaks_minor_y, linetype = "dotted",
+               color = "grey70", linewidth = 0.45) +
     
     # Axes principaux
-    geom_hline(yintercept = 0, linetype = "solid", color = "black", linewidth = 0.8) +
-    geom_vline(xintercept = 0, linetype = "solid", color = "black", linewidth = 0.8) +
+    geom_hline(yintercept = 0, linetype = "solid", color = "black",
+               linewidth = 0.8) +
+    geom_vline(xintercept = 0, linetype = "solid", color = "black",
+               linewidth = 0.8) +
     
     # Points
-    geom_point(aes(color = Legend_Combined, shape = Legend_Combined), size = 3) +
+    geom_point(aes(color = Legend_Combined, shape = Legend_Combined),
+               size = 3) +
     
     # Labels avec repositionnement automatique
     geom_label_repel(aes(color = Legend_Combined), 
@@ -297,7 +317,8 @@ plot_mca_custom <- function(res.mca, variables_quali_supp, labels_tvradio, axes 
     scale_color_manual(
       values = c("TV" = "black", 
                  "Radio" = "blue", 
-                 setNames(rep("red", length(shape_map)), paste0("Supp: ", names(shape_map))))
+                 setNames(rep("red", length(shape_map)),
+                          paste0("Supp: ", names(shape_map))))
     ) +
     
     # Configuration des formes
@@ -333,7 +354,7 @@ plot_mca_custom <- function(res.mca, variables_quali_supp, labels_tvradio, axes 
 
 
 # --- 9. CRÉATION ET AFFICHAGE DU GRAPHIQUE ---
-# ================================================================================
+# ==============================================================================
 
 # Création du graphique ACM
 p <- plot_mca_custom(
